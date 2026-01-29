@@ -5,11 +5,11 @@ import Image from 'next/image'
 
 const stories = [
     { name: 'New In', image: 'https://images.unsplash.com/photo-1518831959646-742c3a14ebf7?w=200&q=80', isLive: true },
-    { name: 'Best Sellers', image: 'https://images.unsplash.com/photo-1524416268818-0845245e3e12?w=200&q=80', isLive: false },
-    { name: 'Sale', image: 'https://images.unsplash.com/photo-1596755389378-c31d21fd1273?w=200&q=80', isLive: false },
-    { name: 'Dresses', image: 'https://images.unsplash.com/photo-1519457431-44ccd64a579b?w=200&q=80', isLive: false },
-    { name: 'Shoes', image: 'https://images.unsplash.com/photo-1516483638261-f4dbaf036963?w=200&q=80', isLive: false },
-    { name: 'Accessories', image: 'https://images.unsplash.com/photo-1535632787350-4e68ef0ac584?w=200&q=80', isLive: false },
+    { name: 'Best Sellers', image: '/pink1.webp', isLive: false },
+    { name: 'Sale', image: '/white.webp', isLive: false },
+    { name: 'Dresses', image: '/red.webp', isLive: false },
+    { name: 'Shoes', image: '/white2.webp', isLive: false },
+    { name: 'Accessories', image: '/pink3.webp', isLive: false },
 ]
 
 export function MobileStories() {

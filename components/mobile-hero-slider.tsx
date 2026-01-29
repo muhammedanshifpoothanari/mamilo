@@ -13,15 +13,15 @@ const slides = [
         cta: 'Shop Now'
     },
     {
-        image: 'https://images.unsplash.com/photo-1524416268818-0845245e3e12?w=800&q=80',
-        title: 'Party Wear',
-        subtitle: 'For Special Moments',
+        image: '/white.webp',
+        title: 'Christening',
+        subtitle: 'Pure & Blessed',
         cta: 'Explore'
     },
     {
-        image: 'https://images.unsplash.com/photo-1596755389378-c31d21fd1273?w=800&q=80',
-        title: 'Summer Sale',
-        subtitle: 'Up to 50% Off',
+        image: '/red.webp',
+        title: 'Holiday Season',
+        subtitle: 'Festive Magic',
         cta: 'View Offers'
     }
 ]
