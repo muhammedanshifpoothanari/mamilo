@@ -22,7 +22,7 @@ export function Navigation() {
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       {/* Top announcement bar */}
       <div className="bg-primary text-primary-foreground py-2 text-center text-sm">
-        <p className="text-pretty">Free shipping on orders over $100 • Easy returns within 30 days</p>
+        <p className="text-pretty">Free shipping on orders over 200 SAR • Easy returns within 30 days</p>
       </div>
 
       {/* Main navigation */}
