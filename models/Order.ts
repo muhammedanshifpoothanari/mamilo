@@ -30,6 +30,12 @@ const OrderSchema = new mongoose.Schema({
         enum: ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'],
         default: 'Pending',
     },
+    // Billing breakdown
+    subtotal: Number,
+    discount: { type: Number, default: 0 },
+    couponCode: { type: String, default: null },
+    shipping: Number,
+    tax: Number, // 15% VAT
     total: Number,
     createdAt: {
         type: Date,

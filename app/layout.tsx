@@ -64,7 +64,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={`${outfit.variable} ${playfair.variable} ${dancingScript.variable}`}>
+    <html lang="en" className={`${outfit.variable} ${playfair.variable} ${dancingScript.variable}`} suppressHydrationWarning>
       <body className="font-sans antialiased">
         <LanguageProvider>
           <AuthProvider>

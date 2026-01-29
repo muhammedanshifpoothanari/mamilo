@@ -35,30 +35,32 @@ export function MobileProductCard({
 
   return (
     <div className="group relative active:scale-95 transition-transform duration-200">
-      <Link href={`/product/${slug}`}>
-        <div className="relative aspect-[3/4] rounded-2xl overflow-hidden bg-muted mb-3">
-          <img
-            src={image || "/placeholder.svg"}
-            alt={name}
-            className="w-full h-full object-cover group-active:scale-95 transition-transform duration-200"
-          />
+      <div
+        className="relative aspect-[3/4] rounded-2xl overflow-hidden bg-muted mb-3 cursor-pointer"
+        onClick={() => router.push(`/product/${slug}`)}
+      >
+        <img
+          src={image || "/placeholder.svg"}
+          alt={name}
+          className="w-full h-full object-cover group-active:scale-95 transition-transform duration-200"
+        />
 
-          {/* Wishlist Button */}
-          <button
-            onClick={async (e) => {
-              e.preventDefault()
-              e.stopPropagation()
-              await toggleWishlist(slug)
-            }}
-            className="absolute top-3 right-3 w-9 h-9 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-md active:scale-95 transition-transform"
-          >
-            <Heart
-              className={`h-4 w-4 transition-colors ${isLiked ? 'fill-red-500 text-red-500' : 'text-foreground'
-                }`}
-            />
-          </button>
-        </div>
-      </Link>
+        {/* Wishlist Button */}
+        <button
+          onClick={async (e) => {
+            e.preventDefault()
+            e.stopPropagation()
+            await toggleWishlist(slug)
+          }}
+          aria-label="Wishlist"
+          className="absolute top-3 right-3 w-9 h-9 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-md active:scale-95 transition-transform z-10"
+        >
+          <Heart
+            className={`h-4 w-4 transition-colors ${isLiked ? 'fill-red-500 text-red-500' : 'text-foreground'
+              }`}
+          />
+        </button>
+      </div>
 
       <Link href={`/product/${slug}`}>
         <div className="space-y-1">
@@ -68,11 +70,11 @@ export function MobileProductCard({
 
           <div className="flex items-center gap-2">
             <span className="text-base font-bold text-foreground">
-              ${price.toFixed(2)}
+              {price.toFixed(2)} SAR
             </span>
             {originalPrice && (
               <span className="text-sm text-muted-foreground line-through">
-                ${originalPrice.toFixed(2)}
+                {originalPrice.toFixed(2)} SAR
               </span>
             )}
           </div>

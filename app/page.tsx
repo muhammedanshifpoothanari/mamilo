@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect } from 'react'
 import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
@@ -34,6 +35,7 @@ import { useCart } from "@/context/cart-context"
 import { useLanguage } from "@/context/language-context"
 import { products } from "@/lib/data"
 import { useToast } from "@/hooks/use-toast"
+import confetti from 'canvas-confetti'
 
 export default function MamiloHome() {
   const { addItem } = useCart()
@@ -41,6 +43,49 @@ export default function MamiloHome() {
   const { toast } = useToast()
 
   const homepageProducts: any[] = products.slice(0, 8)
+
+  // Welcome confetti for first-time visitors
+  useEffect(() => {
+    // Check if user has visited before
+    const hasVisited = document.cookie.split('; ').find(row => row.startsWith('mamilo_visited='))
+
+    if (!hasVisited) {
+      // Set cookie to expire in 1 year
+      const expires = new Date()
+      expires.setFullYear(expires.getFullYear() + 1)
+      document.cookie = `mamilo_visited=true; expires=${expires.toUTCString()}; path=/`
+
+      // Trigger welcome confetti
+      setTimeout(() => {
+        const duration = 3000
+        const end = Date.now() + duration
+        const colors = ['#FF69B4', '#FFB6C1', '#FFC0CB', '#FF1493', '#DDA0DD']
+
+        const frame = () => {
+          confetti({
+            particleCount: 2,
+            angle: 60,
+            spread: 55,
+            origin: { x: 0 },
+            colors: colors
+          })
+          confetti({
+            particleCount: 2,
+            angle: 120,
+            spread: 55,
+            origin: { x: 1 },
+            colors: colors
+          })
+
+          if (Date.now() < end) {
+            requestAnimationFrame(frame)
+          }
+        }
+
+        frame()
+      }, 500) // Small delay to ensure page is loaded
+    }
+  }, [])
 
   const handleQuickAdd = (e: any, product: any) => {
     e.preventDefault()
@@ -222,7 +267,7 @@ export default function MamiloHome() {
                       <div className="p-4">
                         <h3 className="font-semibold mb-2 text-balance group-hover:text-primary transition-colors">{product.name}</h3>
                         <div className="flex items-center justify-between">
-                          <span className="text-lg font-bold text-primary">${product.price.toFixed(2)}</span>
+                          <span className="text-lg font-bold text-primary">{product.price.toFixed(2)} SAR</span>
                           <div className="flex items-center gap-1">
                             <Star className="h-3 w-3 fill-accent text-accent" />
                             <span className="text-sm font-medium">{product.rating}</span>
@@ -287,7 +332,7 @@ export default function MamiloHome() {
                       <div className="p-4">
                         <h3 className="font-semibold mb-2 text-balance group-hover:text-primary transition-colors">{product.name}</h3>
                         <div className="flex items-center justify-between">
-                          <span className="text-lg font-bold text-primary">${product.price.toFixed(2)}</span>
+                          <span className="text-lg font-bold text-primary">{product.price.toFixed(2)} SAR</span>
                           <div className="flex items-center gap-1">
                             <Star className="h-3 w-3 fill-accent text-accent" />
                             <span className="text-sm font-medium">{product.rating}</span>

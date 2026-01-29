@@ -1,7 +1,7 @@
 
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Navigation } from '@/components/navigation'
@@ -19,7 +19,7 @@ import { useCart } from '@/context/cart-context'
 import { useAuth } from '@/context/auth-context'
 import { toast } from 'sonner'
 
-export default function CheckoutPage() {
+function CheckoutContent() {
   const { user, loading } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -40,6 +40,7 @@ export default function CheckoutPage() {
   const [selectedAddressIndex, setSelectedAddressIndex] = useState<number>(-1)
   const [isNewAddress, setIsNewAddress] = useState(false)
   const [newAddress, setNewAddress] = useState({ street: '', city: '', state: '', zip: '', country: 'Saudi Arabia' })
+  const [addressErrors, setAddressErrors] = useState({ street: '', city: '', state: '' })
 
   // Coupon
   const [couponCode, setCouponCode] = useState('')
@@ -144,9 +145,27 @@ export default function CheckoutPage() {
     }
   }
 
-  const handlePhoneSubmit = (e: React.FormEvent) => {
+
+  const handlePhoneSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (phone.length > 8) {
+      // Capture phone number for retargeting
+      try {
+        await fetch('/api/leads/capture', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            phone,
+            name: name || 'Unknown',
+            email: user?.email || '',
+            source: 'checkout',
+            stage: 'phone_entered'
+          })
+        })
+      } catch (error) {
+        console.error('Failed to capture lead:', error)
+        // Don't block checkout if lead capture fails
+      }
       setStep(2)
     }
   }
@@ -157,14 +176,41 @@ export default function CheckoutPage() {
     // Get final address
     let finalAddress;
     if (isNewAddress) {
-      if (!newAddress.street || !newAddress.city) {
-        toast.error("Please fill in the address fields");
+      // Validate address fields
+      const errors = {
+        street: !newAddress.street ? 'Street address is required' : '',
+        city: !newAddress.city ? 'City is required' : '',
+        state: !newAddress.state ? 'State/Region is required' : ''
+      }
+
+      setAddressErrors(errors)
+
+      if (errors.street || errors.city || errors.state) {
+        toast.error("Please complete all required address fields");
         setIsSubmitting(false);
         return;
       }
       finalAddress = newAddress;
     } else {
+      if (selectedAddressIndex === -1 || !savedAddresses[selectedAddressIndex]) {
+        toast.error("Please select an address or add a new one");
+        setIsSubmitting(false);
+        return;
+      }
       finalAddress = savedAddresses[selectedAddressIndex];
+    }
+
+    // Validate all required fields
+    if (!name || !phone) {
+      toast.error("Please provide your name and phone number");
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (checkoutItems.length === 0) {
+      toast.error("Your cart is empty");
+      setIsSubmitting(false);
+      return;
     }
 
     try {
@@ -184,9 +230,12 @@ export default function CheckoutPage() {
           color: item.color,
           image: item.image
         })),
-        total: total,
+        subtotal: subtotal,
         discount: discountAmount,
         couponCode: appliedCoupon ? appliedCoupon.code : null,
+        shipping: shippingCost,
+        tax: tax,
+        total: total,
         paymentMethod: 'COD'
       }
 
@@ -372,23 +421,50 @@ export default function CheckoutPage() {
 
                       {(isNewAddress || savedAddresses.length === 0) && (
                         <div className="space-y-3 pt-4 border-t mt-4 animate-in slide-in-from-top-2">
-                          <Label>New Address Details</Label>
-                          <Input
-                            placeholder="Street Address"
-                            value={newAddress.street}
-                            onChange={e => setNewAddress({ ...newAddress, street: e.target.value })}
-                          />
+                          <Label>New Address Details <span className="text-destructive">*</span></Label>
+                          <div className="space-y-1">
+                            <Input
+                              placeholder="Street Address *"
+                              value={newAddress.street}
+                              onChange={e => {
+                                setNewAddress({ ...newAddress, street: e.target.value })
+                                setAddressErrors({ ...addressErrors, street: '' })
+                              }}
+                              className={addressErrors.street ? 'border-destructive' : ''}
+                            />
+                            {addressErrors.street && (
+                              <p className="text-xs text-destructive">{addressErrors.street}</p>
+                            )}
+                          </div>
                           <div className="grid grid-cols-2 gap-2">
-                            <Input
-                              placeholder="City"
-                              value={newAddress.city}
-                              onChange={e => setNewAddress({ ...newAddress, city: e.target.value })}
-                            />
-                            <Input
-                              placeholder="State"
-                              value={newAddress.state}
-                              onChange={e => setNewAddress({ ...newAddress, state: e.target.value })}
-                            />
+                            <div className="space-y-1">
+                              <Input
+                                placeholder="City *"
+                                value={newAddress.city}
+                                onChange={e => {
+                                  setNewAddress({ ...newAddress, city: e.target.value })
+                                  setAddressErrors({ ...addressErrors, city: '' })
+                                }}
+                                className={addressErrors.city ? 'border-destructive' : ''}
+                              />
+                              {addressErrors.city && (
+                                <p className="text-xs text-destructive">{addressErrors.city}</p>
+                              )}
+                            </div>
+                            <div className="space-y-1">
+                              <Input
+                                placeholder="State/Region *"
+                                value={newAddress.state}
+                                onChange={e => {
+                                  setNewAddress({ ...newAddress, state: e.target.value })
+                                  setAddressErrors({ ...addressErrors, state: '' })
+                                }}
+                                className={addressErrors.state ? 'border-destructive' : ''}
+                              />
+                              {addressErrors.state && (
+                                <p className="text-xs text-destructive">{addressErrors.state}</p>
+                              )}
+                            </div>
                           </div>
                           <Input
                             placeholder="Country"
@@ -472,22 +548,26 @@ export default function CheckoutPage() {
                     <div className="space-y-2 text-sm mb-4">
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Subtotal</span>
-                        <span>${subtotal.toFixed(2)}</span>
+                        <span>{subtotal.toFixed(2)} SAR</span>
                       </div>
                       {appliedCoupon && (
                         <div className="flex justify-between text-green-600">
                           <span>Discount</span>
-                          <span>-${discountAmount.toFixed(2)}</span>
+                          <span>-{discountAmount.toFixed(2)} SAR</span>
                         </div>
                       )}
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Shipping</span>
-                        <span>{shippingCost === 0 ? <span className="text-green-600">Free</span> : `$${shippingCost.toFixed(2)}`}</span>
+                        <span>{shippingCost === 0 ? <span className="text-green-600">Free</span> : `${shippingCost.toFixed(2)} SAR`}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">VAT (15%)</span>
+                        <span>{tax.toFixed(2)} SAR</span>
                       </div>
                       <Separator className="my-2" />
                       <div className="flex justify-between font-bold text-lg">
                         <span>Total</span>
-                        <span className="text-primary">${total.toFixed(2)}</span>
+                        <span className="text-primary">{total.toFixed(2)} SAR</span>
                       </div>
                     </div>
 
@@ -524,7 +604,7 @@ export default function CheckoutPage() {
                       onClick={handleCompleteOrder}
                       disabled={isSubmitting}
                     >
-                      {isSubmitting ? 'Processing...' : `Confirm Order - $${total.toFixed(2)}`}
+                      {isSubmitting ? 'Processing...' : `Confirm Order - ${total.toFixed(2)} SAR`}
                     </Button>
                   </Card>
                 </div>
@@ -634,7 +714,7 @@ export default function CheckoutPage() {
 
         {/* Mobile Sticky Complete Order */}
         {step === 2 && (
-          <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-md border-t border-border p-4">
+          <div className="lg:hidden fixed bottom-16 left-0 right-0 z-40 bg-background/95 backdrop-blur-md border-t border-border p-4">
             <div className="flex items-center gap-3">
               <div>
                 <p className="text-xs text-muted-foreground">Total</p>
@@ -653,5 +733,20 @@ export default function CheckoutPage() {
         )}
       </div>
     </div>
+  )
+}
+
+export default function CheckoutPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading checkout...</p>
+        </div>
+      </div>
+    }>
+      <CheckoutContent />
+    </Suspense>
   )
 }

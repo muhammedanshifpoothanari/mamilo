@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect } from 'react'
 import Link from 'next/link'
 import { CheckCircle2, ShoppingBag, ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -7,9 +8,41 @@ import { Card } from '@/components/ui/card'
 import { Navigation } from '@/components/navigation'
 import { MobileNavigation } from '@/components/mobile-navigation'
 import { Footer } from '@/components/footer'
+import confetti from 'canvas-confetti'
 
 export default function OrderSuccessPage() {
     const orderId = 'ORD-' + Math.floor(100000 + Math.random() * 900000)
+
+    useEffect(() => {
+        // Trigger confetti celebration
+        const duration = 3000
+        const end = Date.now() + duration
+
+        const colors = ['#FF69B4', '#FFB6C1', '#FFC0CB', '#FF1493']
+
+        const frame = () => {
+            confetti({
+                particleCount: 3,
+                angle: 60,
+                spread: 55,
+                origin: { x: 0 },
+                colors: colors
+            })
+            confetti({
+                particleCount: 3,
+                angle: 120,
+                spread: 55,
+                origin: { x: 1 },
+                colors: colors
+            })
+
+            if (Date.now() < end) {
+                requestAnimationFrame(frame)
+            }
+        }
+
+        frame()
+    }, [])
 
     return (
         <div className="min-h-screen bg-muted/30">
@@ -56,8 +89,8 @@ export default function OrderSuccessPage() {
                             </Link>
                         </Button>
 
-                        <Button variant="outline" className="w-full" asChild>
-                            <Link href="/account">
+                        <Button size="lg" className="w-full" asChild>
+                            <Link href="/profile">
                                 View My Orders
                             </Link>
                         </Button>

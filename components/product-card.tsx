@@ -44,70 +44,71 @@ export function ProductCard({
 
   return (
     <Card className="group overflow-hidden border-0 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
-      <Link href={`/product/${slug}`}>
-        <div className="relative aspect-[3/4] overflow-hidden bg-muted">
-          <Image
-            src={image || "/placeholder.svg"}
-            alt={name}
-            fill
-            className="object-cover group-hover:scale-105 transition-transform duration-500 will-change-transform"
+      <div
+        className="relative aspect-[3/4] overflow-hidden bg-muted cursor-pointer"
+        onClick={() => router.push(`/product/${slug}`)}
+      >
+        <Image
+          src={image || "/placeholder.svg"}
+          alt={name}
+          fill
+          className="object-cover group-hover:scale-105 transition-transform duration-500 will-change-transform"
+        />
+
+        {/* Badges */}
+        <div className="absolute top-3 left-3 flex flex-col gap-2">
+          {isNew && (
+            <Badge className="bg-accent text-accent-foreground">New</Badge>
+          )}
+          {isBestseller && (
+            <Badge className="bg-primary text-primary-foreground">Bestseller</Badge>
+          )}
+        </div>
+
+        {/* Wishlist button */}
+        <Button
+          variant="secondary"
+          size="icon"
+          className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+          onClick={async (e) => {
+            e.preventDefault()
+            e.stopPropagation()
+            await toggleWishlist(slug)
+          }}
+        >
+          <Heart
+            className={`h-4 w-4 transition-all duration-300 ${isWishlisted ? 'fill-current text-red-500 animate-like' : ''
+              }`}
           />
+        </Button>
 
-          {/* Badges */}
-          <div className="absolute top-3 left-3 flex flex-col gap-2">
-            {isNew && (
-              <Badge className="bg-accent text-accent-foreground">New</Badge>
-            )}
-            {isBestseller && (
-              <Badge className="bg-primary text-primary-foreground">Bestseller</Badge>
-            )}
-          </div>
-
-          {/* Wishlist button */}
+        {/* Quick add button */}
+        <div className="absolute bottom-0 left-0 right-0 p-3 opacity-0 group-hover:opacity-100 transition-opacity z-10">
           <Button
-            variant="secondary"
-            size="icon"
-            className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity"
-            onClick={async (e) => {
+            className="w-full"
+            onClick={(e) => {
               e.preventDefault()
               e.stopPropagation()
-              await toggleWishlist(slug)
+              if (!user) {
+                router.push('/login')
+                return
+              }
+              addItem({
+                id,
+                name,
+                slug,
+                price,
+                image,
+                size: '2T', // Default
+                color: 'Default',
+                quantity: 1
+              })
             }}
-            aria-label="Add to wishlist"
           >
-            <Heart
-              className={`h-4 w-4 transition-all duration-300 ${isWishlisted ? 'fill-current text-red-500 animate-like' : ''
-                }`}
-            />
+            Quick Add
           </Button>
-
-          {/* Quick add button */}
-          <div className="absolute bottom-0 left-0 right-0 p-3 opacity-0 group-hover:opacity-100 transition-opacity">
-            <Button
-              className="w-full"
-              onClick={(e) => {
-                e.preventDefault()
-                e.stopPropagation()
-                if (!user) {
-                  router.push('/login')
-                  return
-                }
-                addItem({
-                  id,
-                  name,
-                  slug,
-                  price,
-                  image,
-                  size: '2T', // Default
-                  color: 'Default',
-                })
-              }}
-            >
-              Quick Add
-            </Button>
-          </div>
         </div>
-      </Link>
+      </div>
 
       <CardContent className="p-4 space-y-2">
         <Link href={`/product/${slug}`}>
@@ -122,10 +123,10 @@ export function ProductCard({
         </Link>
 
         <div className="flex items-center gap-2">
-          <span className="font-semibold text-lg">${price}</span>
+          <span className="font-semibold text-lg">{price.toFixed(2)} SAR</span>
           {originalPrice && (
             <span className="text-sm text-muted-foreground line-through">
-              ${originalPrice}
+              {originalPrice.toFixed(2)} SAR
             </span>
           )}
         </div>

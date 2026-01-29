@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react"
 import Link from 'next/link'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { Navigation } from '@/components/navigation'
 import { MobileNavigation } from '@/components/mobile-navigation'
@@ -20,7 +21,7 @@ export default function ProfilePage() {
   const { user, loading, signOut } = useAuth()
   console.log("ProfilePage Render", { user, loading });
   const router = useRouter()
-  const [activeTab, setActiveTab] = useState("overview")
+  const [activeTab, setActiveTab] = useState("orders")
   const [profileData, setProfileData] = useState<any>(null)
   const [orders, setOrders] = useState<any[]>([])
   const [isFetching, setIsFetching] = useState(true)
@@ -247,7 +248,7 @@ export default function ProfilePage() {
                       <CardTitle className="text-sm font-medium text-muted-foreground">Total Spent</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="text-2xl font-bold">${profileData?.totalSpent?.toFixed(2) || '0.00'}</div>
+                      <div className="text-2xl font-bold">{profileData?.totalSpent?.toFixed(2) || '0.00'} SAR</div>
                     </CardContent>
                   </Card>
                   <Card>
@@ -273,7 +274,7 @@ export default function ProfilePage() {
                             <p className="text-sm text-muted-foreground">{new Date(order.createdAt).toLocaleDateString()}</p>
                           </div>
                           <div className="text-right">
-                            <p className="font-bold">${order.total}</p>
+                            <p className="font-bold">{order.total} SAR</p>
                             <Badge variant="outline">{order.status}</Badge>
                           </div>
                         </Card>
@@ -309,7 +310,7 @@ export default function ProfilePage() {
                             </div>
                             <div>
                               <span className="text-muted-foreground block">Total</span>
-                              <span className="font-medium">${order.total}</span>
+                              <span className="font-medium">{order.total} SAR</span>
                             </div>
                             <div>
                               <span className="text-muted-foreground block">Order #</span>
@@ -324,16 +325,48 @@ export default function ProfilePage() {
                           {order.items.map((item: any, idx: number) => (
                             <div key={idx} className="flex items-center gap-4 py-2">
                               <div className="h-16 w-16 bg-muted rounded overflow-hidden relative">
-                                {/* Ideally Image component here */}
-                                <div className="absolute inset-0 flex items-center justify-center text-xs text-muted-foreground">Img</div>
+                                <Image
+                                  src={item.image || "/placeholder.svg"}
+                                  alt={item.name}
+                                  fill
+                                  className="object-cover"
+                                />
                               </div>
                               <div className="flex-1">
                                 <h4 className="font-medium">{item.name}</h4>
-                                <p className="text-sm text-muted-foreground">Qty: {item.quantity}</p>
+                                <p className="text-sm text-muted-foreground">
+                                  Size: {item.size} • Color: {item.color} • Qty: {item.quantity}
+                                </p>
                               </div>
-                              <p className="font-medium">${item.price}</p>
+                              <p className="font-medium">{(item.price * item.quantity).toFixed(2)} SAR</p>
                             </div>
                           ))}
+
+                          {/* Billing Breakdown */}
+                          <div className="mt-4 pt-4 border-t space-y-2 text-sm">
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">Subtotal</span>
+                              <span>{order.subtotal?.toFixed(2) || '0.00'} SAR</span>
+                            </div>
+                            {order.discount > 0 && (
+                              <div className="flex justify-between text-green-600">
+                                <span>Discount {order.couponCode && `(${order.couponCode})`}</span>
+                                <span>-{order.discount.toFixed(2)} SAR</span>
+                              </div>
+                            )}
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">Shipping</span>
+                              <span>{order.shipping === 0 ? 'FREE' : `${order.shipping?.toFixed(2)} SAR`}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">VAT (15%)</span>
+                              <span>{order.tax?.toFixed(2) || '0.00'} SAR</span>
+                            </div>
+                            <div className="flex justify-between font-bold text-base pt-2 border-t">
+                              <span>Total</span>
+                              <span className="text-primary">{order.total?.toFixed(2)} SAR</span>
+                            </div>
+                          </div>
                         </div>
                         <div className="p-4 bg-muted/10 border-t flex justify-end gap-2">
                           <Button variant="outline" size="sm" onClick={() => toast.success("Order details loaded")}>
@@ -419,10 +452,10 @@ export default function ProfilePage() {
             )}
           </div>
         </div>
-      </main>
+      </main >
 
       <Footer />
-    </div>
+    </div >
   )
 }
 
